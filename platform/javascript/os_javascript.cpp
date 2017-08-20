@@ -477,6 +477,8 @@ Error OS_JavaScript::initialize(const VideoMode &p_desired, int p_video_driver, 
 
 	print_line("Init Physicsserver");
 
+	camera_server = memnew(CameraServer);
+
 	input = memnew(InputDefault);
 	_input = input;
 
@@ -530,6 +532,8 @@ void OS_JavaScript::delete_main_loop() {
 }
 
 void OS_JavaScript::finalize() {
+
+	memdelete(camera_server);
 
 	memdelete(input);
 }

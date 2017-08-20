@@ -129,6 +129,15 @@ void RasterizerSceneGLES2::environment_set_canvas_max_layer(RID p_env, int p_max
 void RasterizerSceneGLES2::environment_set_ambient_light(RID p_env, const Color &p_color, float p_energy, float p_sky_contribution) {
 }
 
+void RasterizerSceneGLES2::environment_set_camera_feed_id(RID p_env, int p_camera_feed_id) {
+}
+
+void RasterizerSceneGLES2::environment_set_camera_feed_h_flip(RID p_env, bool p_camera_feed_h_flip) {
+}
+
+void RasterizerSceneGLES2::environment_set_camera_feed_v_flip(RID p_env, bool p_camera_feed_v_flip) {
+}
+
 void RasterizerSceneGLES2::environment_set_dof_blur_far(RID p_env, bool p_enable, float p_distance, float p_transition, float p_amount, VS::EnvironmentDOFBlurQuality p_quality) {
 }
 

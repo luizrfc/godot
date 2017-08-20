@@ -507,6 +507,9 @@ Error OS_X11::initialize(const VideoMode &p_desired, int p_video_driver, int p_a
 
 	visual_server->init();
 
+	///@TODO implement a subclass for Linux and instantiate that instead
+	camera_server = memnew(CameraServer);
+
 	input = memnew(InputDefault);
 
 	window_has_focus = true; // Set focus to true at init
@@ -585,6 +588,8 @@ void OS_X11::finalize() {
 	touch.state.clear();
 #endif
 	memdelete(input);
+
+	memdelete(camera_server);
 
 	visual_server->finish();
 	memdelete(visual_server);
