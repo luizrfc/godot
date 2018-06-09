@@ -11,6 +11,7 @@ files = [
     'gl_context_egl.cpp',
     'app.cpp',
     'os_uwp.cpp',
+    'microsoft_mr_interface.cpp',
 ]
 
 if "build_angle" in env and env["build_angle"]:

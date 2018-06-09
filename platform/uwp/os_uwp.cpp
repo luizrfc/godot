@@ -299,6 +299,14 @@ Error OSUWP::initialize(const VideoMode &p_desired, int p_video_driver, int p_au
 
 	set_keep_screen_on(GLOBAL_DEF("display/window/keep_screen_on", true));
 
+#ifdef MICROSOFT_MR_ENABLED
+	ClassDB::register_class<MicrosoftMRInterface>();
+
+	Ref<MicrosoftMRInterface> microsoft_mr;
+	microsoft_mr.instance();
+	ARVRServer::get_singleton()->add_interface(microsoft_mr);
+#endif
+
 	return OK;
 }
 
@@ -849,6 +857,72 @@ int OSUWP::get_power_percent_left() {
 	return power_manager->get_power_percent_left();
 }
 
+#ifdef MICROSOFT_MR_ENABLED
+void OSUWP::registerHolographic(CoreWindow ^ p_window) {
+	// Create a holographic space for the core window for the current view.
+	// Presenting holographic frames that are created by this holographic space will put
+	// the app into exclusive mode.
+	holographicSpace = HolographicSpace::CreateForCoreWindow(window)
+
+    // Use the default SpatialLocator to track the motion of the device.
+    spatialLocator = SpatialLocator::GetDefault();
+
+    // Be able to respond to changes in the positional tracking state.
+	locatabilityChangedToken =
+		spatialLocator->LocatabilityChanged +=
+		ref new Windows::Foundation::TypedEventHandler<SpatialLocator^, Object^>(
+			std::bind(&OSUWP::OnLocatabilityChanged, this, _1, _2)
+		);
+
+	// Respond to camera added events by creating any resources that are specific
+	// to that camera, such as the back buffer render target view.
+	// When we add an event handler for CameraAdded, the API layer will avoid putting
+	// the new camera in new HolographicFrames until we complete the deferral we created
+	// for that handler, or return from the handler without creating a deferral. This
+	// allows the app to take more than one frame to finish creating resources and
+	// loading assets for the new holographic camera.
+	// This function should be registered before the app creates any HolographicFrames.
+	cameraAddedToken =
+		holographicSpace->CameraAdded +=
+		ref new Windows::Foundation::TypedEventHandler<HolographicSpace^, HolographicSpaceCameraAddedEventArgs^>(
+			std::bind(&OSUWP::OnCameraAdded, this, _1, _2)
+		);
+
+	// Respond to camera removed events by releasing resources that were created for that
+	// camera.
+	// When the app receives a CameraRemoved event, it releases all references to the back
+	// buffer right away. This includes render target views, Direct2D target bitmaps, and so on.
+	// The app must also ensure that the back buffer is not attached as a render target, as
+	// shown in DeviceResources::ReleaseResourcesForBackBuffer.
+	cameraRemovedToken =
+		holographicSpace->CameraRemoved +=
+		ref new Windows::Foundation::TypedEventHandler<HolographicSpace^, HolographicSpaceCameraRemovedEventArgs^>(
+			std::bind(&OSUWP::OnCameraRemoved, this, _1, _2)
+		);
+}
+
+void OSUWP::UnregisterHolographicEventHandlers() {
+	if (holographicSpace != nullptr) {
+		// Clear previous event registrations.
+
+		if (cameraAddedToken.Value != 0) {
+			holographicSpace->CameraAdded -= cameraAddedToken;
+			cameraAddedToken.Value = 0;
+		}
+
+		if (cameraRemovedToken.Value != 0) {
+			holographicSpace->CameraRemoved -= cameraRemovedToken;
+			cameraRemovedToken.Value = 0;
+		}
+	}
+
+	if (spatialLocator != nullptr) {
+		spatialLocator->LocatabilityChanged -= m_locatabilityChangedToken;
+	}
+}
+
+#endif
+
 OSUWP::OSUWP() {
 
 	key_event_pos = 0;
@@ -881,6 +955,11 @@ OSUWP::OSUWP() {
 	Vector<Logger *> loggers;
 	loggers.push_back(memnew(WindowsTerminalLogger));
 	_set_logger(memnew(CompositeLogger(loggers)));
+
+#ifdef MICROSOFT_MR_ENABLED
+	holographicSpace = nullptr;
+	spatialLocator = nullptr;
+#endif
 }
 
 OSUWP::~OSUWP() {

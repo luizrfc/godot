@@ -143,6 +143,10 @@ void App::SetWindow(CoreWindow ^ p_window) {
 	window->KeyUp +=
 			ref new TypedEventHandler<CoreWindow ^, KeyEventArgs ^>(this, &App::OnKeyUp);
 
+#ifdef MICROSOFT_MR_ENABLED
+	os->registerHolographic(p_window);
+#endif
+
 	unsigned int argc;
 	char **argv = get_command_line(&argc);
 

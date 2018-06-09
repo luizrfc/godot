@@ -154,6 +154,9 @@ def configure(env):
     env.Append(CXXFLAGS='/ZW /FS'.split())
     env.Append(CCFLAGS=['/AI', vc_base_path + '\\vcpackages', '/AI', os.environ['WINDOWSSDKDIR'] + '\\References\\CommonConfiguration\\Neutral'])
 
+    ## Make this a switch
+    env.Append(CCFLAGS=['/D', 'MICROSOFT_MR_ENABLED'])
+
     ## Link flags
 
     env.Append(LINKFLAGS=['/MANIFEST:NO', '/NXCOMPAT', '/DYNAMICBASE', '/WINMD', '/APPCONTAINER', '/ERRORREPORT:PROMPT', '/NOLOGO', '/TLBID:1', '/NODEFAULTLIB:"kernel32.lib"', '/NODEFAULTLIB:"ole32.lib"'])

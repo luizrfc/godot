@@ -49,6 +49,10 @@
 #include <stdio.h>
 #include <windows.h>
 
+#ifdef MICROSOFT_MR_ENABLED
+#include "microsoft_mr_interface.h"
+#endif
+
 /**
 	@author Juan Linietsky <reduzio@gmail.com>
 */
@@ -149,6 +153,17 @@ private:
 	Windows::Devices::Sensors::Accelerometer ^ accelerometer;
 	Windows::Devices::Sensors::Magnetometer ^ magnetometer;
 	Windows::Devices::Sensors::Gyrometer ^ gyrometer;
+
+#ifdef MICROSOFT_MR_ENABLED
+	// Holographic APIs
+	Windows::Graphics::Holographic::HolographicSpace ^ holographicSpace;
+	Windows::Perception::Spatial::SpatialLocator ^ spatialLocator;
+
+	// Event registration tokens.
+	Windows::Foundation::EventRegistrationToken cameraAddedToken;
+	Windows::Foundation::EventRegistrationToken cameraRemovedToken;
+	Windows::Foundation::EventRegistrationToken locatabilityChangedToken;
+#endif
 
 	// functions used by main to initialize/deintialize the OS
 protected:
@@ -261,6 +276,33 @@ public:
 	virtual int get_power_percent_left();
 
 	void queue_key_event(KeyEvent &p_event);
+
+#ifdef MICROSOFT_MR_ENABLED
+	// initialise our holographic system
+	void registerHolographic(CoreWindow ^ p_window);
+
+	// Clears event registration state. Used when changing to a new HolographicSpace
+	// and when tearing down AppMain.
+	void UnregisterHolographicEventHandlers();
+
+	// Asynchronously creates resources for new holographic cameras.
+	void OnCameraAdded(
+		Windows::Graphics::Holographic::HolographicSpace^ sender,
+		Windows::Graphics::Holographic::HolographicSpaceCameraAddedEventArgs^ args);
+
+	// Synchronously releases resources for holographic cameras that are no longer
+	// attached to the system.
+	void OnCameraRemoved(
+		Windows::Graphics::Holographic::HolographicSpace^ sender,
+		Windows::Graphics::Holographic::HolographicSpaceCameraRemovedEventArgs^ args);
+
+	// Used to notify the app when the positional tracking state changes.
+	void OnLocatabilityChanged(
+		Windows::Perception::Spatial::SpatialLocator^ sender,
+		Platform::Object^ args);
+
+
+#endif
 
 	OSUWP();
 	~OSUWP();
