@@ -774,7 +774,7 @@ public:
 	void initialize() {}
 	void begin_frame() {}
 	void set_current_render_target(RID p_render_target) {}
-	void restore_render_target() {}
+	void restore_render_target(bool p_3d_drawn) {}
 	void clear_render_target(const Color &p_color) {}
 	void blit_render_target_to_screen(RID p_render_target, const Rect2 &p_screen_rect, int p_screen = 0) {}
 	void end_frame(bool p_swap_buffers) {}

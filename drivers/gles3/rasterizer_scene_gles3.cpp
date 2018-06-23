@@ -3559,7 +3559,12 @@ void RasterizerSceneGLES3::_post_process(Environment *env, const CameraMatrix &p
 
 	if (!env || storage->frame.current_rt->flags[RasterizerStorage::RENDER_TARGET_TRANSPARENT]) {
 		//no environment or transparent render, simply return and convert to SRGB
-		glBindFramebuffer(GL_FRAMEBUFFER, storage->frame.current_rt->fbo);
+		if (storage->frame.current_rt->rgba8_out.fbo) {
+			// unlikely to use rgba8_out in this mode but better safe then sorry
+			glBindFramebuffer(GL_FRAMEBUFFER, storage->frame.current_rt->rgba8_out.fbo);
+		} else {
+			glBindFramebuffer(GL_FRAMEBUFFER, storage->frame.current_rt->fbo);
+		}
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, storage->frame.current_rt->effects.mip_maps[0].color);
 		storage->shaders.copy.set_conditional(CopyShaderGLES3::LINEAR_TO_SRGB, true);
@@ -3901,7 +3906,11 @@ void RasterizerSceneGLES3::_post_process(Environment *env, const CameraMatrix &p
 		glViewport(0, 0, storage->frame.current_rt->width, storage->frame.current_rt->height);
 	}
 
-	glBindFramebuffer(GL_FRAMEBUFFER, storage->frame.current_rt->fbo);
+	if (storage->frame.current_rt->rgba8_out.fbo) {
+		glBindFramebuffer(GL_FRAMEBUFFER, storage->frame.current_rt->rgba8_out.fbo);
+	} else {
+		glBindFramebuffer(GL_FRAMEBUFFER, storage->frame.current_rt->fbo);
+	}
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, composite_from);
@@ -3989,7 +3998,7 @@ void RasterizerSceneGLES3::_post_process(Environment *env, const CameraMatrix &p
 		state.tonemap_shader.set_uniform(TonemapShaderGLES3::BCS, Vector3(env->adjustments_brightness, env->adjustments_contrast, env->adjustments_saturation));
 	}
 
-	_copy_screen(true, true);
+	_copy_screen(true, !storage->frame.current_rt->rgba8_out.fbo);
 
 	//turn off everything used
 	state.tonemap_shader.set_conditional(TonemapShaderGLES3::USE_AUTO_EXPOSURE, false);
